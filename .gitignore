@@ -1,0 +1,9 @@
+node_modules
+dist
+data
+*.log
+
+# personal prep, not for GitHub
+FEATURES.md
+PROJECT_GUIDE.md
+INTERVIEW_PREP.md

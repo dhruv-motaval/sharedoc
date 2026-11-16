@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ajaia-docs
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/users
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true

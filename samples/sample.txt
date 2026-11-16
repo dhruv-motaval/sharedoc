@@ -1,0 +1,4 @@
+Plain text file.
+
+Second paragraph
+with a line break.
