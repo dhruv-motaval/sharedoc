@@ -6,7 +6,7 @@ A lightweight collaborative document editor: create and edit rich-text documents
 
 ## Run locally
 
-Requires **Node 20 or newer** (developed on Node 24). No database setup: a local SQLite file is used.
+Requires **Node 22** or newer (Vercel is pinned to 22.x; developed on Node 24). **Live demo:** https://sharedoc-six.vercel.app No database setup: a local SQLite file is used.
 
 ```bash
 npm install

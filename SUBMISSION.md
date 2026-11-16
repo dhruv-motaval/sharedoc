@@ -1,6 +1,6 @@
 # Submission
 
-**Live product URL:** `TODO: paste your Vercel URL here`
+**Live product URL:** https://sharedoc-six.vercel.app (Vercel + Turso; open it and click a seeded user to sign in)
 **Walkthrough video:** see `walkthrough_video_url.txt`
 
 ## Test accounts (no passwords, one-click picker)

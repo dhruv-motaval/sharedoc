@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import mammoth from 'mammoth';
 import { marked } from 'marked';
-import sanitizeHtml from 'sanitize-html';
+import xss from 'xss';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { extname, join } from 'node:path';
@@ -14,12 +14,14 @@ const MAX_UPLOAD = 2 * 1024 * 1024;
 export const ALLOWED_UPLOADS = ['.txt', '.md', '.docx'];
 
 // Server-side allowlist: shared docs render in other users' browsers, so never trust client HTML.
-export const clean = (html) =>
-  sanitizeHtml(html, {
-    allowedTags: ['h1', 'h2', 'h3', 'p', 'br', 'strong', 'em', 'u', 's', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'hr', 'a'],
-    allowedAttributes: { a: ['href'] },
-    allowedSchemes: ['http', 'https', 'mailto'],
-  });
+// `xss` (not sanitize-html): sanitize-html's ESM-only dependency cannot be loaded by Vercel's Node runtime.
+const ALLOWED_TAGS = ['h1', 'h2', 'h3', 'p', 'br', 'strong', 'em', 'u', 's', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'hr', 'a'];
+const filter = new xss.FilterXSS({
+  whiteList: Object.fromEntries(ALLOWED_TAGS.map((t) => [t, t === 'a' ? ['href'] : []])),
+  stripIgnoreTag: true, // drop unknown tags, keep their text
+  stripIgnoreTagBody: ['script', 'style'], // drop these entirely, including contents
+});
+export const clean = (html) => filter.process(html);
 
 const sign = (v) => createHmac('sha256', SECRET).update(String(v)).digest('hex');
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

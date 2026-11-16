@@ -18,6 +18,7 @@
 - **Editor choice:** the assistant first proposed Quill for simplicity. I chose React + Tiptap instead, so the editor library was my decision.
 - **Redundant dependency:** the assistant installed `@tiptap/extension-underline`; I checked Tiptap v3 and `StarterKit` already includes underline, so I removed it.
 - **Test runner bug:** the generated `npm test` script passed a directory to `node --test`, which fails on Node 24; fixed it with a file glob.
+- **Deployment pivot:** the first plan (SQLite file) cannot persist on Vercel, so the data layer moved to Turso (libSQL). The first Vercel deploy then crashed in production although all tests passed locally: the runtime log showed `ERR_REQUIRE_ESM` from `sanitize-html`'s dependency. Pinning Node 22 did not help, so I swapped the sanitizer for `xss`, re-checked it against script, event-handler, `javascript:` and iframe payloads, and redeployed. Lesson: tests on my machine do not prove the production runtime; I smoke-tested the live API (login, create, save, upload, delete) after deploying.
 - **Button colour:** the design palette's teal (#0D9488) fails 4.5:1 contrast with white text, so buttons use a darker teal.
 - **Scope cuts the assistant had to respect:** no real auth, no real-time sync, no PDF import.
 - **ADD YOUR OWN:** anything else you changed or rejected while reviewing the code.
