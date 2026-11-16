@@ -2,11 +2,11 @@
 
 A lightweight collaborative document editor: create and edit rich-text documents, import files, and share documents with other users as viewer or editor.
 
-**Stack:** React (Vite) · Tiptap editor · Node.js + Express · SQLite (`node:sqlite`, built into Node 22.5+)
+**Stack:** React (Vite) · Tiptap editor · Node.js + Express · SQLite through libSQL (a local file in development, [Turso](https://turso.tech) in production) · deployed on Vercel
 
 ## Run locally
 
-Requires **Node 22.5 or newer** (developed on Node 24).
+Requires **Node 20 or newer** (developed on Node 24). No database setup: a local SQLite file is used.
 
 ```bash
 npm install
@@ -48,16 +48,26 @@ Sign-in is a one-click picker of seeded users (no passwords, a deliberate scope 
 - Export a document as `.html`
 - Light and dark theme (follows system), keyboard accessible, responsive
 
-## Deploy (Render, free)
+## Deploy (Vercel + Turso, both free)
 
-1. Push this folder to a GitHub repo.
-2. In Render: **New → Blueprint**, select the repo (uses `render.yaml` + `Dockerfile`).
-3. Open the generated URL.
+Vercel functions have no persistent disk, so production data lives in Turso (hosted SQLite, same SQL).
 
-Free-tier caveat: the container disk is ephemeral and the service sleeps when idle. Data resets on redeploy and the first request after sleep is slow. Demo users and the demo document are re-seeded on boot. For durable data, attach a persistent disk and point `DB_PATH` at it, or move to Postgres.
+1. Create a free Turso database and copy its URL (`libsql://...`) and an auth token.
+2. Import the GitHub repo into Vercel. `vercel.json` already sets the build (`npm run build`), output (`dist/`) and routes `/api/*` to `api/index.js`.
+3. Add environment variables in Vercel → Settings → Environment Variables:
+
+| Variable | Value |
+|---|---|
+| `TURSO_DATABASE_URL` | `libsql://<your-db>.turso.io` |
+| `TURSO_AUTH_TOKEN` | token from Turso |
+| `SESSION_SECRET` | a long random string (the server refuses to start in production without it) |
+
+4. Deploy. Tables and the demo users/document are created automatically on the first request.
+
+Alternative: `Dockerfile` + `render.yaml` run the same app as one container on Render (file-based SQLite; free-tier disk resets on redeploy).
 
 ## Status
 
 - **Working:** everything listed above, verified in a browser (create, format, autosave, reload, share dialog, viewer lock, `.docx`/`.md`/`.txt` import) plus 6 automated API tests.
-- **Not done / known limits:** no real-time co-editing (last-save-wins with a version check that returns a conflict message); no real authentication; free-tier data is not durable; no `.pdf` import; no automated browser (UI) tests.
-- **Next with 2–4 more hours:** real auth (hashed passwords or OAuth), Postgres, live collaboration (Tiptap + Yjs), version history, UI tests with Playwright.
+- **Not done / known limits:** no real-time co-editing (last-save-wins with a version check that returns a conflict message); no real authentication; no `.pdf` import; no automated browser (UI) tests.
+- **Next with 2–4 more hours:** real auth (hashed passwords or OAuth), live collaboration (Tiptap + Yjs), version history, UI tests with Playwright.

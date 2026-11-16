@@ -5,7 +5,7 @@ import { openDb } from '../server/db.js';
 
 let server, base;
 before(async () => {
-  server = createApp(openDb(':memory:')).listen(0);
+  server = createApp(await openDb({ url: ':memory:' })).listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://localhost:${server.address().port}`;
 });
@@ -55,6 +55,16 @@ test('sharing: stranger gets 404, viewer reads but cannot write, editor can writ
 
   await alice('DELETE', `/api/docs/${id}/shares/3`);
   assert.equal((await carol('GET', `/api/docs/${id}`)).status, 404);
+});
+
+test('owner deletes a document: it disappears for everyone, non-owners cannot delete', async () => {
+  const [alice, bob] = [await as(1), await as(2)];
+  const { body: { id } } = await alice('POST', '/api/docs', { title: 'Temp' });
+  await alice('POST', `/api/docs/${id}/shares`, { email: 'bob@ajaia.test', role: 'editor' });
+  assert.equal((await bob('DELETE', `/api/docs/${id}`)).status, 403);
+  assert.equal((await alice('DELETE', `/api/docs/${id}`)).status, 200);
+  assert.equal((await bob('GET', `/api/docs/${id}`)).status, 404);
+  assert.ok(!(await bob('GET', '/api/docs')).body.shared.some((d) => d.id === id));
 });
 
 test('stale version is rejected with 409 instead of overwriting', async () => {

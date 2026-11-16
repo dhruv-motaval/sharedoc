@@ -1,6 +1,6 @@
 # Submission
 
-**Live product URL:** `TODO: paste your Render URL here`
+**Live product URL:** `TODO: paste your Vercel URL here`
 **Walkthrough video:** see `walkthrough_video_url.txt`
 
 ## Test accounts (no passwords, one-click picker)
@@ -18,11 +18,12 @@ alice@ajaia.test (owner of the demo doc) · bob@ajaia.test (editor) · carol@aja
 | `README.md` | Setup, run, deploy, status, next steps |
 | `ARCHITECTURE.md` | What I prioritized and key decisions |
 | `AI_WORKFLOW.md` | AI tools used, what I changed, how I verified |
-| `Dockerfile`, `render.yaml` | Deployment |
+| `api/index.js`, `vercel.json` | Vercel deployment (backed by Turso) |
+| `Dockerfile`, `render.yaml` | Alternative single-container deployment |
 | `walkthrough_video_url.txt` | Link to the 3–5 minute video |
 
 ## Status
 
-- **Working:** create, rename, edit, autosave, reopen; bold/italic/underline/headings/lists; `.txt`/`.md`/`.docx` import; share as viewer or editor, revoke, owned vs shared lists; HTML export; persistence in SQLite.
-- **Incomplete:** no real authentication, no real-time co-editing, free-tier hosting data is not durable, no automated UI tests.
-- **Next with 2–4 more hours:** real auth, Postgres, Yjs live collaboration, version history, Playwright tests.
+- **Working:** create, rename, edit, autosave, reopen; bold/italic/underline/headings/lists; `.txt`/`.md`/`.docx` import; share as viewer or editor, revoke, owned vs shared lists; HTML export; persistence in Turso (SQLite) on Vercel.
+- **Incomplete:** no real authentication, no real-time co-editing, no automated UI tests.
+- **Next with 2–4 more hours:** real auth, Yjs live collaboration, version history, Playwright tests.

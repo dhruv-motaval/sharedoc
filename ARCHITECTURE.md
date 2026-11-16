@@ -14,9 +14,10 @@ Deliberately cut: real authentication, real-time co-editing, comments, PDF impor
 ## Shape of the system
 
 ```
-React SPA (Vite)  ──fetch /api──▶  Express  ──▶  SQLite (users, documents, shares)
+React SPA (Vite)  ──fetch /api──▶  Express  ──libSQL──▶  Turso / SQLite file (users, documents, shares)
   Tiptap editor                      │
-                                     └── serves the built SPA in production (one deployable)
+                                     ├── Vercel: SPA served from the CDN, Express runs as one serverless function (api/index.js)
+                                     └── local / Docker: Express also serves the built SPA
 ```
 
 - **Frontend:** React with hash routing (`#/doc/12`), no router or state library. Tiptap (ProseMirror) edits documents; the document body is stored as sanitized HTML.
@@ -35,11 +36,13 @@ React SPA (Vite)  ──fetch /api──▶  Express  ──▶  SQLite (users, 
 
 **Mocked auth, real session mechanics.** Users pick a seeded account; the server sets an HMAC-signed, HttpOnly cookie and every route checks it. This is enough to demonstrate real owner/shared behavior without spending the timebox on password flows. Do not ship this to production.
 
-**SQLite via `node:sqlite`.** No native module to compile, so install and Docker build are reliable. Trade-off: it requires Node 22.5+, and free hosting disks are ephemeral (documented).
+**SQLite dialect via libSQL (Turso in production).** Vercel functions have no persistent disk and each instance is separate, so a SQLite file there would lose data and break sharing. libSQL keeps the same SQL and the same schema: a local file in development and tests, Turso in production, selected by environment variables. The cost is an async data layer (`server/db.js` exposes `all/one/run`) and a network hop per query. Foreign-key cascades are done explicitly in the delete route because enforcement differs between local SQLite and Turso. The save's version check is part of the `UPDATE ... WHERE version = ?`, so two concurrent saves cannot both succeed.
+
+**Production refuses to start without `SESSION_SECRET`.** The cookie is signed with it; a default secret on a public URL would let anyone forge a login.
 
 ## Testing
 
-`npm test` runs 6 API tests against in-memory SQLite: auth required, save and reload preserves formatting, the full share matrix (stranger 404, viewer 403 on write, editor can write, non-owner cannot share, revoke removes access), stale-version 409, HTML sanitization, and upload (accepts `.md`, rejects unsupported types). UI behavior was verified manually in a browser; there are no automated UI tests.
+`npm test` runs 7 API tests against in-memory SQLite: auth required, save and reload preserves formatting, delete (owner only, removes the document for everyone), the full share matrix (stranger 404, viewer 403 on write, editor can write, non-owner cannot share, revoke removes access), stale-version 409, HTML sanitization, and upload (accepts `.md`, rejects unsupported types). UI behavior was verified manually in a browser; there are no automated UI tests.
 
 ## Editor note (for explaining Tiptap)
 
